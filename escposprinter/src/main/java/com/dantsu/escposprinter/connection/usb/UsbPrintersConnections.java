@@ -27,13 +27,25 @@ public class UsbPrintersConnections extends UsbConnections {
     @Nullable
     public static UsbConnection selectFirstConnected(Context context) {
         UsbPrintersConnections printers = new UsbPrintersConnections(context);
-        UsbConnection[] bluetoothPrinters = printers.getList();
+        UsbConnection[] usbPrinters = printers.getList();
         
-        if (bluetoothPrinters == null || bluetoothPrinters.length == 0) {
+        if (usbPrinters == null || usbPrinters.length == 0) {
             return null;
         }
 
-        return bluetoothPrinters[0];
+        return usbPrinters[0];
+    }
+
+    @Nullable
+    public static UsbConnection[] selectAllConnected(Context context) {
+        UsbPrintersConnections printers = new UsbPrintersConnections(context);
+        UsbConnection[] usbPrinters = printers.getList();
+
+        if (usbPrinters == null || usbPrinters.length == 0) {
+            return null;
+        }
+
+        return usbPrinters;
     }
     
     
