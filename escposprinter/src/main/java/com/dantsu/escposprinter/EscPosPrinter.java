@@ -256,9 +256,6 @@ public class EscPosPrinter extends EscPosPrinterSize {
         tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, bitmap.getWidth(), bitmap);
         tsc.addPrint(1, 1);
 
-        Socket socket = new Socket(ip, port);
-        OutputStream output = socket.getOutputStream();
-
         byte[] bytes = new byte[tsc.command.size()];
         for (int i = 0; i < tsc.command.size(); i++) {
             bytes[i] = tsc.command.get(i);
