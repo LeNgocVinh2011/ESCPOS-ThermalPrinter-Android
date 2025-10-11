@@ -10,6 +10,7 @@ import com.dantsu.escposprinter.textparser.PrinterTextParserColumn;
 import com.dantsu.escposprinter.textparser.IPrinterTextParserElement;
 import com.dantsu.escposprinter.textparser.PrinterTextParserLine;
 import com.dantsu.escposprinter.textparser.PrinterTextParserString;
+import com.dantsu.escposprinter.TscCommand;
 
 public class EscPosPrinter extends EscPosPrinterSize {
 
@@ -244,6 +245,26 @@ public class EscPosPrinter extends EscPosPrinterSize {
      */
     public EscPosPrinter printCharsetEncodingCharacters(int charsetId) {
         this.printer.printCharsetEncodingCharacters(charsetId);
+        return this;
+    }
+
+    public EscPosPrinter printTscLabel(String ip, int port, Bitmap bitmap) throws Exception {
+        TscCommand tsc = new TscCommand();
+        tsc.addSize(50, 30);
+        tsc.addGap(2);
+        tsc.addCls();
+        tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, bitmap.getWidth(), bitmap);
+        tsc.addPrint(1, 1);
+
+        Socket socket = new Socket(ip, port);
+        OutputStream output = socket.getOutputStream();
+
+        byte[] bytes = new byte[tsc.command.size()];
+        for (int i = 0; i < tsc.command.size(); i++) {
+            bytes[i] = tsc.command.get(i);
+        }
+
+        this.printer.printImage(bytes);
         return this;
     }
 }
