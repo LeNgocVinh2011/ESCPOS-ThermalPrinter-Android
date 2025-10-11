@@ -248,7 +248,7 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    public EscPosPrinter printTscLabel(String ip, int port, Bitmap bitmap) throws Exception {
+    public EscPosPrinter printTscLabel(Bitmap bitmap) throws EscPosConnectionException, EscPosParserException, EscPosEncodingException, EscPosBarcodeException {
         TscCommand tsc = new TscCommand();
         tsc.addSize(50, 30);
         tsc.addGap(2);
