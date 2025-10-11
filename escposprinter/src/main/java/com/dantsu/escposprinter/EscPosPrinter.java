@@ -10,8 +10,9 @@ import com.dantsu.escposprinter.textparser.PrinterTextParserColumn;
 import com.dantsu.escposprinter.textparser.IPrinterTextParserElement;
 import com.dantsu.escposprinter.textparser.PrinterTextParserLine;
 import com.dantsu.escposprinter.textparser.PrinterTextParserString;
-import com.dantsu.escposprinter.TscCommand;
 import android.graphics.Bitmap;
+
+import java.util.Vector;
 
 public class EscPosPrinter extends EscPosPrinterSize {
 
@@ -249,7 +250,7 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    public EscPosPrinter printTscLabel(Bitmap bitmap) throws EscPosConnectionException, EscPosParserException, EscPosEncodingException, EscPosBarcodeException {
+    public EscPosPrinter printTscLabel(Bitmap bitmap) throws EscPosConnectionException {
         TscCommand tsc = new TscCommand();
         tsc.addSize(50, 30);
         tsc.addGap(2);
@@ -257,9 +258,10 @@ public class EscPosPrinter extends EscPosPrinterSize {
         tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, bitmap.getWidth(), bitmap);
         tsc.addPrint(1, 1);
 
-        byte[] bytes = new byte[tsc.command.size()];
-        for (int i = 0; i < tsc.command.size(); i++) {
-            bytes[i] = tsc.command.get(i);
+        Vector<Byte> command = tsc.getCommand();
+        byte[] bytes = new byte[command.size()];
+        for (int i = 0; i < command.size(); i++) {
+            bytes[i] = command.get(i);
         }
 
         this.printer.printImage(bytes);
