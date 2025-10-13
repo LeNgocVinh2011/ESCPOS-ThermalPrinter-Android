@@ -11,6 +11,7 @@ import com.dantsu.escposprinter.textparser.IPrinterTextParserElement;
 import com.dantsu.escposprinter.textparser.PrinterTextParserLine;
 import com.dantsu.escposprinter.textparser.PrinterTextParserString;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 
 import java.util.Vector;
 
@@ -247,6 +248,40 @@ public class EscPosPrinter extends EscPosPrinterSize {
      */
     public EscPosPrinter printCharsetEncodingCharacters(int charsetId) {
         this.printer.printCharsetEncodingCharacters(charsetId);
+        return this;
+    }
+
+    public EscPosPrinter printImageAndCut(Bitmap bitmap) throws EscPosConnectionException {
+        if (this.printer == null || this.printerNbrCharactersPerLine == 0) {
+            return this;
+        }
+        // scaled image width = 80mm
+        int targetWidth = 576;
+        int targetHeight = (bitmap.getHeight() * targetWidth) / bitmap.getWidth();
+        Bitmap scaled = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true);
+
+        int width = scaled.getWidth();
+        int height = scaled.getHeight();
+        int[] pixels = new int[width * height];
+        scaled.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        Bitmap bw = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int color = pixels[y * width + x];
+                int r = (color >> 16) & 0xff;
+                int g = (color >> 8) & 0xff;
+                int b = color & 0xff;
+                int gray = (r + g + b) / 3;
+
+                bw.setPixel(x, y, gray < 160 ? Color.BLACK : Color.WHITE);
+            }
+        }
+
+        byte[] bytes = EscPosPrinterCommands.bitmapToBytesFast(bw);
+        this.printer.printImage(bytes);
+        this.printer.cutPaper();
+
         return this;
     }
 

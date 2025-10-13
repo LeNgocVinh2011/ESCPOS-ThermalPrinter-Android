@@ -758,4 +758,35 @@ public class EscPosPrinterCommands {
     public EscPosCharsetEncoding getCharsetEncoding() {
         return this.charsetEncoding;
     }
+
+    public static byte[] bitmapToBytesFast(Bitmap bitmap) {
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int bytesPerLine = (width + 7) / 8;
+
+        int[] pixels = new int[width * height];
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        byte[] imageBytes = EscPosPrinterCommands.initGSv0Command(bytesPerLine, height);
+
+        int i = 8;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x += 8) {
+                int b = 0;
+                for (int k = 0; k < 8; k++) {
+                    int px = x + k;
+                    if (px < width) {
+                        int color = pixels[y * width + px];
+                        int r = (color >> 16) & 0xFF;
+                        int g = (color >> 8) & 0xFF;
+                        int bVal = color & 0xFF;
+                        int gray = (r + g + bVal) / 3;
+                        if (gray < 160) b |= (1 << (7 - k));
+                    }
+                }
+                imageBytes[i++] = (byte) b;
+            }
+        }
+        return imageBytes;
+    }
 }
