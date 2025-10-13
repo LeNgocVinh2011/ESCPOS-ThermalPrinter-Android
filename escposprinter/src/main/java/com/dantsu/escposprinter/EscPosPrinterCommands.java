@@ -591,6 +591,7 @@ public class EscPosPrinterCommands {
 
         for (byte[] bytes : bytesToPrint) {
             this.printerConnection.write(bytes);
+            this.printerConnection.write(new byte[]{0x1D, 0x56, 66, 0x00});
             this.printerConnection.send();
         }
 
