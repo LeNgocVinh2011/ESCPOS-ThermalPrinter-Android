@@ -13,6 +13,8 @@ import com.dantsu.escposprinter.textparser.PrinterTextParserString;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Vector;
 
 public class EscPosPrinter extends EscPosPrinterSize {
@@ -251,35 +253,40 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    public EscPosPrinter printImageAndCut(Bitmap bitmap) throws EscPosConnectionException {
+    public EscPosPrinter printImageAndCut(Bitmap bitmap) throws EscPosConnectionException, IOException {
         if (this.printer == null || this.printerNbrCharactersPerLine == 0) {
             return this;
         }
-        // scaled image width = 80mm
-        int targetWidth = 576;
-        int targetHeight = (bitmap.getHeight() * targetWidth) / bitmap.getWidth();
-        Bitmap scaled = Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true);
+        // Scale bitmap width to 80mm
+        int w = 576;
+        int h = bitmap.getHeight() * w / bitmap.getWidth();
+        Bitmap scaled = Bitmap.createScaledBitmap(bitmap, w, h, true);
 
-        int width = scaled.getWidth();
-        int height = scaled.getHeight();
-        int[] pixels = new int[width * height];
-        scaled.getPixels(pixels, 0, width, 0, 0, width, height);
+        int bytesPerLine = (w + 7) / 8;
+        byte[] image = new byte[bytesPerLine * h];
+        int[] pixels = new int[w * h];
+        scaled.getPixels(pixels, 0, w, 0, 0, w, h);
 
-        Bitmap bw = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int color = pixels[y * width + x];
-                int r = (color >> 16) & 0xff;
-                int g = (color >> 8) & 0xff;
-                int b = color & 0xff;
-                int gray = (r + g + b) / 3;
-
-                bw.setPixel(x, y, gray < 160 ? Color.BLACK : Color.WHITE);
+        // Convert image to binary image
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int color = pixels[y * w + x];
+                int gray = ((color >> 16) & 0xFF) + ((color >> 8) & 0xFF) + (color & 0xFF);
+                if (gray < 480) image[y * bytesPerLine + (x >> 3)] |= (byte) (0x80 >> (x & 7));
             }
         }
 
-        byte[] bytes = EscPosPrinterCommands.bitmapToBytesFast(bw);
-        this.printer.printImage(bytes);
+        // Command print fast image
+        ByteArrayOutputStream cmd = new ByteArrayOutputStream();
+        cmd.write(new byte[]{0x1D, 0x76, 0x30, 0x00});
+        cmd.write(bytesPerLine & 0xFF);
+        cmd.write((bytesPerLine >> 8) & 0xFF);
+        cmd.write(h & 0xFF);
+        cmd.write((h >> 8) & 0xFF);
+        cmd.write(image);
+
+        // print image
+        this.printer.printImage(cmd.toByteArray());
         this.printer.cutPaper();
 
         return this;
