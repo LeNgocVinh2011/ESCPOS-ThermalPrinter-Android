@@ -758,4 +758,15 @@ public class EscPosPrinterCommands {
     public EscPosCharsetEncoding getCharsetEncoding() {
         return this.charsetEncoding;
     }
+
+    public EscPosPrinterCommands clearSpace() throws EscPosConnectionException {
+        if (!this.printerConnection.isConnected()) {
+            return this;
+        }
+
+        this.printerConnection.write(new byte[]{0x1B, 0x40});
+        this.printerConnection.write(new byte[]{0x1B, 0x33, 0x00});
+        this.printerConnection.send(100);
+        return this;
+    }
 }

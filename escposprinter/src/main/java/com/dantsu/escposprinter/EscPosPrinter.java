@@ -286,6 +286,7 @@ public class EscPosPrinter extends EscPosPrinterSize {
         cmd.write(image);
 
         // print image
+        this.printer.clearSpace();
         this.printer.printImage(cmd.toByteArray());
         this.printer.cutPaper();
 
