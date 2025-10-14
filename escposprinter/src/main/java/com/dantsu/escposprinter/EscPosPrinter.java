@@ -253,37 +253,6 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    private Bitmap trimTopWhite(Bitmap bmp) {
-        int width = bmp.getWidth();
-        int height = bmp.getHeight();
-        int[] pixels = new int[width * height];
-        bmp.getPixels(pixels, 0, width, 0, 0, width, height);
-
-        int top = 0;
-        boolean found = false;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                int color = pixels[y * width + x];
-                int r = (color >> 16) & 0xFF;
-                int g = (color >> 8) & 0xFF;
-                int b = color & 0xFF;
-                if (r < 250 || g < 250 || b < 250) {
-                    top = y;
-                    found = true;
-                    break;
-                }
-            }
-            if (found) break;
-        }
-
-        if (!found || top == 0) return bmp;
-
-        int newHeight = height - top;
-
-        return Bitmap.createBitmap(bmp, 0, top, width, newHeight);
-    }
-
     public EscPosPrinter printImageAndCut(Bitmap bitmap) throws EscPosConnectionException, IOException {
         if (this.printer == null || this.printerNbrCharactersPerLine == 0) {
             return this;
@@ -292,7 +261,6 @@ public class EscPosPrinter extends EscPosPrinterSize {
         int w = 576;
         int h = bitmap.getHeight() * w / bitmap.getWidth();
         Bitmap scaled = Bitmap.createScaledBitmap(bitmap, w, h, true);
-        scaled = trimTopWhite(scaled);
 
         int bytesPerLine = (w + 7) / 8;
         byte[] image = new byte[bytesPerLine * h];
