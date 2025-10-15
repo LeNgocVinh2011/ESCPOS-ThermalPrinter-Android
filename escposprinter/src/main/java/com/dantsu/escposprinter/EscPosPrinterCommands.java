@@ -625,7 +625,7 @@ public class EscPosPrinterCommands {
             this.printerConnection.write(LINE_FEED);
         }
 
-        this.printerConnection.send();
+        // cut paper feed
         cutPaperFeed();
 
         return this;
