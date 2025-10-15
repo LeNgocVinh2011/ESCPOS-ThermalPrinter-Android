@@ -623,6 +623,7 @@ public class EscPosPrinterCommands {
 
             // Do a line feed, if not the printing will resume on the same line
             this.printerConnection.write(LINE_FEED);
+            this.printerConnection.send();
         }
 
         return this;
