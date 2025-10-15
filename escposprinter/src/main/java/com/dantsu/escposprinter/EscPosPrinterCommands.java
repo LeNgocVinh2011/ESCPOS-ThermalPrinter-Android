@@ -609,9 +609,6 @@ public class EscPosPrinterCommands {
 
         int[][] pixels = getPixelsSlow(bitmap, imageWidth, imageHeight);
 
-        final int CHUNK_LINES = 24 * 20; // 20 dải = khoảng 480 pixel chiều cao
-        int lineCount = 0;
-
         for (int y = 0; y < pixels.length; y += 24) {
             this.printerConnection.write(SELECT_BIT_IMAGE_MODE);
 
@@ -626,14 +623,6 @@ public class EscPosPrinterCommands {
             }
 
             this.printerConnection.write(LINE_FEED);
-
-            lineCount += 24;
-
-            // Nếu đạt đến giới hạn chunk → gửi ra printer để tránh tràn buffer
-            if (lineCount >= CHUNK_LINES) {
-                this.printerConnection.send();
-                lineCount = 0;
-            }
         }
 
         // Gửi phần còn lại (nếu còn)
