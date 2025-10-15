@@ -602,6 +602,21 @@ public class EscPosPrinterCommands {
         return this;
     }
 
+    public EscPosPrinterCommands printImageAndCut(byte[] image) throws EscPosConnectionException {
+        if (!this.printerConnection.isConnected()) {
+            return this;
+        }
+
+        byte[][] bytesToPrint = this.useEscAsteriskCommand ? EscPosPrinterCommands.convertGSv0ToEscAsterisk(image) : new byte[][]{image};
+
+        for (byte[] bytes : bytesToPrint) {
+            this.printerConnection.write(bytes);
+            cutPaperFeed();
+        }
+
+        return this;
+    }
+
     public EscPosPrinterCommands printImageBitmap(Bitmap bitmap, int imageWidth, int imageHeight) throws EscPosConnectionException {
         if (!this.printerConnection.isConnected()) {
             return this;
