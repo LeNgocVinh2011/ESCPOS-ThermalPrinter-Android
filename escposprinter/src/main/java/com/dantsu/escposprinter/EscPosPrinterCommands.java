@@ -609,23 +609,47 @@ public class EscPosPrinterCommands {
 
         int[][] pixels = getPixelsSlow(bitmap, imageWidth, imageHeight);
 
+        final int CHUNK_LINES = 24 * 20; // 20 dải = khoảng 480 pixel chiều cao
+        int lineCount = 0;
+
         for (int y = 0; y < pixels.length; y += 24) {
-            // Like I said before, when done sending data,
-            // the printer will resume to normal text printing
             this.printerConnection.write(SELECT_BIT_IMAGE_MODE);
-            // Set nL and nH based on the width of the image
-            this.printerConnection.write(new byte[]{(byte) (0x00ff & pixels[y].length)
-                    , (byte) ((0xff00 & pixels[y].length) >> 8)});
+
+            int widthBytes = (pixels[y].length + 7) / 8;
+            byte nL = (byte) (widthBytes & 0xFF);
+            byte nH = (byte) ((widthBytes >> 8) & 0xFF);
+
+            this.printerConnection.write(new byte[]{nL, nH});
+
             for (int x = 0; x < pixels[y].length; x++) {
-                // for each stripe, recollect 3 bytes (3 bytes = 24 bits)
                 this.printerConnection.write(recollectSlice(y, x, pixels));
             }
 
-            // Do a line feed, if not the printing will resume on the same line
             this.printerConnection.write(LINE_FEED);
-            this.printerConnection.send();
+
+            lineCount += 24;
+
+            // Nếu đạt đến giới hạn chunk → gửi ra printer để tránh tràn buffer
+            if (lineCount >= CHUNK_LINES) {
+                this.printerConnection.send();
+                lineCount = 0;
+            }
         }
 
+        // Gửi phần còn lại (nếu còn)
+        this.printerConnection.send();
+        cutPaperFeed();
+
+        return this;
+    }
+
+    public EscPosPrinterCommands cutPaperFeed() throws EscPosConnectionException {
+        if (!this.printerConnection.isConnected()) {
+            return this;
+        }
+
+        this.printerConnection.write(new byte[]{0x1D, 0x56, 0x42, 0x00});
+        this.printerConnection.send();
         return this;
     }
 

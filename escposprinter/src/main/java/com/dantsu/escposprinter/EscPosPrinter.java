@@ -265,7 +265,6 @@ public class EscPosPrinter extends EscPosPrinterSize {
         // print image
         this.printer.clearSpace();
         this.printer.printImageBitmap(scaled, w, h);
-        this.printer.cutPaper();
 
         return this;
     }
