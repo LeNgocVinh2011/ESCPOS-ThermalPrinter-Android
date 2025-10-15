@@ -610,22 +610,21 @@ public class EscPosPrinterCommands {
         int[][] pixels = getPixelsSlow(bitmap, imageWidth, imageHeight);
 
         for (int y = 0; y < pixels.length; y += 24) {
+            // Like I said before, when done sending data,
+            // the printer will resume to normal text printing
             this.printerConnection.write(SELECT_BIT_IMAGE_MODE);
-
-            int widthBytes = (pixels[y].length + 7) / 8;
-            byte nL = (byte) (widthBytes & 0xFF);
-            byte nH = (byte) ((widthBytes >> 8) & 0xFF);
-
-            this.printerConnection.write(new byte[]{nL, nH});
-
+            // Set nL and nH based on the width of the image
+            this.printerConnection.write(new byte[]{(byte) (0x00ff & pixels[y].length)
+                    , (byte) ((0xff00 & pixels[y].length) >> 8)});
             for (int x = 0; x < pixels[y].length; x++) {
+                // for each stripe, recollect 3 bytes (3 bytes = 24 bits)
                 this.printerConnection.write(recollectSlice(y, x, pixels));
             }
 
+            // Do a line feed, if not the printing will resume on the same line
             this.printerConnection.write(LINE_FEED);
         }
 
-        // Gửi phần còn lại (nếu còn)
         this.printerConnection.send();
         cutPaperFeed();
 
