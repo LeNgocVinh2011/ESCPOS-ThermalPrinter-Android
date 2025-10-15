@@ -1,5 +1,7 @@
 package com.dantsu.escposprinter;
 
+import static com.dantsu.escposprinter.UtilsImage.getPixelsSlow;
+
 import android.graphics.Bitmap;
 
 import java.io.UnsupportedEncodingException;
@@ -78,6 +80,9 @@ public class EscPosPrinterCommands {
 
     public static final int QRCODE_1 = 49;
     public static final int QRCODE_2 = 50;
+
+    private static final byte[] SELECT_BIT_IMAGE_MODE = { 0x1B, 0x2A, 33 };
+    private final static byte[] LINE_FEED = new byte[] { 0x0A };
 
     private DeviceConnection printerConnection;
     private EscPosCharsetEncoding charsetEncoding;
@@ -597,6 +602,32 @@ public class EscPosPrinterCommands {
         return this;
     }
 
+    public EscPosPrinterCommands printImageBitmap(Bitmap bitmap, int imageWidth, int imageHeight) throws EscPosConnectionException {
+        if (!this.printerConnection.isConnected()) {
+            return this;
+        }
+
+        int[][] pixels = getPixelsSlow(bitmap, imageWidth, imageHeight);
+
+        for (int y = 0; y < pixels.length; y += 24) {
+            // Like I said before, when done sending data,
+            // the printer will resume to normal text printing
+            this.printerConnection.write(SELECT_BIT_IMAGE_MODE);
+            // Set nL and nH based on the width of the image
+            this.printerConnection.write(new byte[]{(byte) (0x00ff & pixels[y].length)
+                    , (byte) ((0xff00 & pixels[y].length) >> 8)});
+            for (int x = 0; x < pixels[y].length; x++) {
+                // for each stripe, recollect 3 bytes (3 bytes = 24 bits)
+                this.printerConnection.write(recollectSlice(y, x, pixels));
+            }
+
+            // Do a line feed, if not the printing will resume on the same line
+            this.printerConnection.write(LINE_FEED);
+        }
+
+        return this;
+    }
+
     /**
      * Print a barcode with the connected printer.
      *
@@ -768,5 +799,39 @@ public class EscPosPrinterCommands {
         this.printerConnection.write(new byte[]{0x1B, 0x33, 0x00});
         this.printerConnection.send();
         return this;
+    }
+
+    private byte[] recollectSlice(int y, int x, int[][] img) {
+        byte[] slices = new byte[] { 0, 0, 0 };
+        for (int yy = y, i = 0; yy < y + 24 && i < 3; yy += 8, i++) {
+            byte slice = 0;
+            for (int b = 0; b < 8; b++) {
+                int yyy = yy + b;
+                if (yyy >= img.length) {
+                    continue;
+                }
+                int col = img[yyy][x];
+                boolean v = shouldPrintColor(col);
+                slice |= (byte) ((v ? 1 : 0) << (7 - b));
+            }
+            slices[i] = slice;
+        }
+        return slices;
+    }
+
+    private boolean shouldPrintColor(int col) {
+        final int threshold = 127;
+        int a, r, g, b, luminance;
+        a = (col >> 24) & 0xff;
+        if (a != 0xff) {// Ignore transparencies
+            return false;
+        }
+        r = (col >> 16) & 0xff;
+        g = (col >> 8) & 0xff;
+        b = col & 0xff;
+
+        luminance = (int) (0.299 * r + 0.587 * g + 0.114 * b);
+
+        return luminance < threshold;
     }
 }

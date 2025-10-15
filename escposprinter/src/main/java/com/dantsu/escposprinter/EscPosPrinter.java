@@ -262,32 +262,10 @@ public class EscPosPrinter extends EscPosPrinterSize {
         int h = bitmap.getHeight() * w / bitmap.getWidth();
         Bitmap scaled = Bitmap.createScaledBitmap(bitmap, w, h, true);
 
-        int bytesPerLine = (w + 7) / 8;
-        byte[] image = new byte[bytesPerLine * h];
-        int[] pixels = new int[w * h];
-        scaled.getPixels(pixels, 0, w, 0, 0, w, h);
-
-        // Convert image to binary image
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int color = pixels[y * w + x];
-                int gray = ((color >> 16) & 0xFF) + ((color >> 8) & 0xFF) + (color & 0xFF);
-                if (gray < 480) image[y * bytesPerLine + (x >> 3)] |= (byte) (0x80 >> (x & 7));
-            }
-        }
-
-        // Command print fast image
-        ByteArrayOutputStream cmd = new ByteArrayOutputStream();
-        cmd.write(new byte[]{0x1D, 0x76, 0x30, 0x00});
-        cmd.write(bytesPerLine & 0xFF);
-        cmd.write((bytesPerLine >> 8) & 0xFF);
-        cmd.write(h & 0xFF);
-        cmd.write((h >> 8) & 0xFF);
-        cmd.write(image);
-
         // print image
         this.printer.clearSpace();
-        this.printer.printImage(cmd.toByteArray());
+        this.printer.printImageBitmap(scaled, w, h);
+        this.printer.cutPaper();
 
         return this;
     }
