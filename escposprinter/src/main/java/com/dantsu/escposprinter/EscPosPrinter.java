@@ -11,7 +11,6 @@ import com.dantsu.escposprinter.textparser.IPrinterTextParserElement;
 import com.dantsu.escposprinter.textparser.PrinterTextParserLine;
 import com.dantsu.escposprinter.textparser.PrinterTextParserString;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -309,11 +308,14 @@ public class EscPosPrinter extends EscPosPrinterSize {
     }
 
     public EscPosPrinter printTscLabel(Bitmap bitmap) throws EscPosConnectionException {
+        // scaled bitmap before print
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 400, 240, true);
+
         TscCommand tsc = new TscCommand();
         tsc.addSize(50, 30);
         tsc.addGap(2);
         tsc.addCls();
-        tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, bitmap.getWidth(), bitmap);
+        tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, scaledBitmap.getWidth(), scaledBitmap);
         tsc.addPrint(1, 1);
 
         Vector<Byte> command = tsc.getCommand();
