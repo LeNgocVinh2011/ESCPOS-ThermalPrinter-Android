@@ -307,15 +307,12 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    public EscPosPrinter printTscLabel(Bitmap bitmap) throws EscPosConnectionException {
-        // scaled bitmap before print
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 400, 240, true);
-
+    public EscPosPrinter printTscLabel(Bitmap bitmap, int printWidth, int printHeight) throws EscPosConnectionException {
         TscCommand tsc = new TscCommand();
-        tsc.addSize(50, 30);
+        tsc.addSize(printWidth, printHeight);
         tsc.addGap(2);
         tsc.addCls();
-        tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, scaledBitmap.getWidth(), scaledBitmap);
+        tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, bitmap.getWidth(), bitmap);
         tsc.addPrint(1, 1);
 
         Vector<Byte> command = tsc.getCommand();
@@ -328,9 +325,9 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    public EscPosPrinter printTscTest(String text) throws EscPosConnectionException {
+    public EscPosPrinter printTscTest(String text, int printWidth, int printHeight) throws EscPosConnectionException {
         TscCommand tsc = new TscCommand();
-        tsc.addSize(50, 30);
+        tsc.addSize(printWidth, printHeight);
         tsc.addGap(2);
         tsc.addCls();
         tsc.addText(10, 10, TscCommand.FONTTYPE.FONT_2, TscCommand.ROTATION.ROTATION_0, TscCommand.FONTMUL.MUL_1, TscCommand.FONTMUL.MUL_1, text);
