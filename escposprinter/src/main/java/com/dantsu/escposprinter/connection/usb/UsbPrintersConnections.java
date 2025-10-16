@@ -7,6 +7,9 @@ import android.hardware.usb.UsbDevice;
 import androidx.annotation.Nullable;
 
 import com.dantsu.escposprinter.exceptions.EscPosConnectionException;
+import com.google.gson.Gson;
+
+import java.util.Arrays;
 
 public class UsbPrintersConnections extends UsbConnections {
 
@@ -34,6 +37,29 @@ public class UsbPrintersConnections extends UsbConnections {
         }
 
         return usbPrinters[0];
+    }
+
+    @Nullable
+    public static UsbConnection selectDeviceConnected(Context context, String deviceStr) {
+        UsbPrintersConnections printers = new UsbPrintersConnections(context);
+        UsbConnection[] usbPrinters = printers.getList();
+
+        if (usbPrinters == null || usbPrinters.length == 0) {
+            return null;
+        }
+
+        Gson gson = new Gson();
+        UsbDevice device = gson.fromJson(deviceStr, UsbDevice.class);
+        int index = 0;
+        for (int idx = 0; idx < usbPrinters.length; idx++) {
+            UsbDevice deviceSelect = usbPrinters[idx].getDevice();
+            if (deviceSelect.getProductId() == device.getProductId() && deviceSelect.getVendorId() == device.getVendorId()) {
+                index = idx;
+                break;
+            }
+        }
+
+        return usbPrinters[index];
     }
 
     @Nullable
