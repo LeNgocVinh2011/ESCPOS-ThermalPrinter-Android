@@ -327,4 +327,22 @@ public class EscPosPrinter extends EscPosPrinterSize {
         this.printer.printImage(bytes);
         return this;
     }
+
+    public EscPosPrinter printTscTest(String text) throws EscPosConnectionException {
+        TscCommand tsc = new TscCommand();
+        tsc.addSize(50, 30);
+        tsc.addGap(2);
+        tsc.addCls();
+        tsc.addText(10, 10, TscCommand.FONTTYPE.FONT_2, TscCommand.ROTATION.ROTATION_0, TscCommand.FONTMUL.MUL_1, TscCommand.FONTMUL.MUL_1, text);
+        tsc.addPrint(1, 1);
+
+        Vector<Byte> command = tsc.getCommand();
+        byte[] bytes = new byte[command.size()];
+        for (int i = 0; i < command.size(); i++) {
+            bytes[i] = command.get(i);
+        }
+
+        this.printer.printImage(bytes);
+        return this;
+    }
 }
