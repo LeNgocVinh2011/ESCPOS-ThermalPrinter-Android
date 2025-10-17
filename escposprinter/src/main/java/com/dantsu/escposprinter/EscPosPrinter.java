@@ -307,10 +307,10 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    public EscPosPrinter printTscLabel(Bitmap bitmap, int printWidth, int printHeight) throws EscPosConnectionException {
+    public EscPosPrinter printTscLabel(Bitmap bitmap, int printWidth, int printHeight, int gapItem) throws EscPosConnectionException {
         TscCommand tsc = new TscCommand();
         tsc.addSize(printWidth, printHeight);
-        tsc.addGap(2);
+        tsc.addGap(gapItem);
         tsc.addCls();
         tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, bitmap.getWidth(), bitmap);
         tsc.addPrint(1, 1);
