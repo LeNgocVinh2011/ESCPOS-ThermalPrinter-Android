@@ -307,12 +307,12 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    public EscPosPrinter printTscLabel(Bitmap bitmap, int printWidth, int printHeight, int gapItem) throws EscPosConnectionException {
+    public EscPosPrinter printTscLabel(Bitmap bitmap, PrintLabelOption option) throws EscPosConnectionException {
         TscCommand tsc = new TscCommand();
-        tsc.addSize(printWidth, printHeight);
-        tsc.addGap(gapItem);
+        tsc.addSize(option.getPrintWidth(), option.getPrintHeight());
+        tsc.addGap(option.getGapItem());
         tsc.addCls();
-        tsc.addBitmap(0, 0, TscCommand.BITMAP_MODE.OVERWRITE, bitmap.getWidth(), bitmap);
+        tsc.addBitmap(option.getX(), option.getY(), TscCommand.BITMAP_MODE.OVERWRITE, bitmap.getWidth(), bitmap);
         tsc.addPrint(1, 1);
 
         Vector<Byte> command = tsc.getCommand();
