@@ -268,7 +268,7 @@ public class EscPosPrinter extends EscPosPrinterSize {
         return this;
     }
 
-    public EscPosPrinter printImage(Bitmap bitmap) throws EscPosConnectionException, IOException {
+    public EscPosPrinter printImage(Bitmap bitmap, boolean isOpenCashBox) throws EscPosConnectionException, IOException {
         if (this.printer == null || this.printerNbrCharactersPerLine == 0) {
             return this;
         }
@@ -303,6 +303,9 @@ public class EscPosPrinter extends EscPosPrinterSize {
         // print image
         this.printer.clearSpace();
         this.printer.printImageAndCut(cmd.toByteArray());
+        if (isOpenCashBox) {
+            this.printer.openCashBox();
+        }
 
         return this;
     }
