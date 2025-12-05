@@ -618,7 +618,7 @@ public class EscPosPrinterCommands {
             0x1D, 0x28, 0x41, 0x03, 0x00,
             0x01, 0x01, 0x01
         };
-        this.printerConnection.write(beep)
+        this.printerConnection.write(beep);
         return this;
     }
 
