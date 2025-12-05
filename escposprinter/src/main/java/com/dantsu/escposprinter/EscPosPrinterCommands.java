@@ -616,7 +616,7 @@ public class EscPosPrinterCommands {
         byte[] beep = new byte[]{
             0x1B, 0x42, 0x02, 0x02
         };
-        printerConnection.write(beep);
+        this.printerConnection.write(beep);
         cutPaperFeed();
         return this;
     }
